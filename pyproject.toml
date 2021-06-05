@@ -1,0 +1,5 @@
+[tool.isort]
+line_length = 79
+
+[tool.black]
+line-length = 79

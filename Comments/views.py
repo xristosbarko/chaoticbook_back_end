@@ -1,53 +1,62 @@
-from rest_framework import generics, filters
-from rest_framework.permissions import IsAuthenticated
-from .serializers import CommentSerializer
-from .models import Comment
-from Posts.models import Post
-from rest_framework.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404
+from rest_framework import generics
+from rest_framework.exceptions import PermissionDenied
+from rest_framework.permissions import IsAuthenticated
+
 from ChaoticBook.permissions import isFollowing
+from Posts.models import Post
+
+from .models import Comment
+from .serializers import CommentSerializer
+
 
 class CommentCreate(generics.CreateAPIView):
-	"""
-	Add a Comment.
-	"""
-	permission_classes = [IsAuthenticated]
-	serializer_class = CommentSerializer
+    """
+    Add a Comment.
+    """
+
+    permission_classes = [IsAuthenticated]
+    serializer_class = CommentSerializer
 
 
 class CommentDelete(generics.DestroyAPIView):
-	"""
-	Delete a Comment.
-	"""
-	permission_classes = [IsAuthenticated]
-	serializer_class = CommentSerializer
+    """
+    Delete a Comment.
+    """
 
-	def get_queryset(self):
-		user = self.request.user
-		comment_id = self.kwargs['pk']
+    permission_classes = [IsAuthenticated]
+    serializer_class = CommentSerializer
 
-		comment = get_object_or_404(Comment, id=comment_id)
+    def get_queryset(self):
+        user = self.request.user
+        comment_id = self.kwargs["pk"]
 
-		if user == comment.user:
-			return comment.delete()
-		else:
-			raise PermissionDenied(detail='You are not allowed to delete this comment.')
+        comment = get_object_or_404(Comment, id=comment_id)
+
+        if user == comment.user:
+            return comment.delete()
+        else:
+            raise PermissionDenied(
+                detail="You are not allowed to delete this comment."
+            )
+
 
 class getPostCommentsList(generics.ListAPIView):
-	"""
-	Returns a list of all the Posts.
-	"""
-	permission_classes = [IsAuthenticated]
-	serializer_class = CommentSerializer
+    """
+    Returns a list of all the Posts.
+    """
 
-	def get_queryset(self):
-		user = self.request.user
-		post_id = self.kwargs['post_id']
+    permission_classes = [IsAuthenticated]
+    serializer_class = CommentSerializer
 
-		post = get_object_or_404(Post, id=post_id)
+    def get_queryset(self):
+        user = self.request.user
+        post_id = self.kwargs["post_id"]
 
-		following = post.user
-		isFollowing(following, user)
+        post = get_object_or_404(Post, id=post_id)
 
-		queryset = Comment.objects.filter(post=post).order_by('-timestamp')
-		return queryset
+        following = post.user
+        isFollowing(following, user)
+
+        queryset = Comment.objects.filter(post=post).order_by("-timestamp")
+        return queryset
