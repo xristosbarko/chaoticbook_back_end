@@ -1,0 +1,91 @@
+name: Django Tests
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build postgres
+        run: |
+          make build-postgres
+          docker save -o postgres.tar postgres
+
+      - name: Build django
+        run: |
+          make build-django
+          docker save -o django.tar django
+
+      - name: Upload postgres
+        uses: actions/upload-artifact@v2
+        with:
+          name: postgres
+          path: ./postgres.tar
+
+      - name: Upload django
+        uses: actions/upload-artifact@v2
+        with:
+          name: django
+          path: ./django.tar
+
+  tests:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Download postgres
+        uses: actions/download-artifact@v2
+        with:
+          name: postgres
+
+      - name: Download django
+        uses: actions/download-artifact@v2
+        with:
+          name: django
+
+      - name: Load images
+        run: |
+          docker load -i postgres.tar
+          docker load -i django.tar
+
+      - name: Check formating
+        run: make check
+
+      - name: Run Tests
+        run: make unit-tests
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: tests
+    steps:
+      - name: Download postgres
+        uses: actions/download-artifact@v2
+        with:
+          name: postgres
+          path: ./postgres.tar
+
+      - name: Download django
+        uses: actions/download-artifact@v2
+        with:
+          name: django
+          path: ./django.tar
+
+      - name: Upload artifacts to machine
+        run: |
+          ssh-keygen -R ${{ secrets.MACHINE_HOST }}
+          echo $SSH_KEY > ssh_key
+          chmod 600 ssh_key
+          scp -i ssh_key -P $MACHINE_PORT -o UserKnownHostsFile=/github/home/.ssh/known_hosts ./postgres.tar $MACHINE_USERNAME@$MACHINE_HOST:~/
+          scp -i ssh_key -P $MACHINE_PORT -o UserKnownHostsFile=/github/home/.ssh/known_hosts ./django.tar $MACHINE_USERNAME@$MACHINE_HOST:~/
+        env:
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+          MACHINE_PORT: ${{ secrets.MACHINE_PORT }}
+          MACHINE_USERNAME: ${{ secrets.MACHINE_USERNAME }}
+          MACHINE_HOST: ${{ secrets.MACHINE_HOST }}
