@@ -79,7 +79,12 @@ jobs:
 
       - name: Upload artifacts to machine
         run: |
-          cat {{ secrets.SSH_KEY }} > ssh_key
+          echo $SSH_KEY > ssh_key
           chmod 600 ssh_key
-          scp -i ssh_key -P {{ secrets.MACHINE_PORT }} ./postgres.tar {{ secrets.MACHINE_USERNAME }}@{{ secretes.MACHINE_HOST }}:~/
-          scp -i ssh_key -P {{ secrets.MACHINE_PORT }} ./django.tar {{ secrets.MACHINE_USERNAME }}@{{ secretes.MACHINE_HOST }}:~/
+          scp -i ssh_key -P $MACHINE_PORT ./postgres.tar $MACHINE_USERNAME@MACHINE_HOST:~/
+          scp -i ssh_key -P $MACHINE_PORT ./django.tar $MACHINE_USERNAME@MACHINE_HOST:~/
+        env:
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+          MACHINE_PORT: ${{ secrets.MACHINE_PORT }}
+          MACHINE_USERNAME: ${{ secrets.MACHINE_USERNAME }}
+          MACHINE_HOST: ${{ secretes.MACHINE_HOST }}
