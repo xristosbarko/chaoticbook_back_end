@@ -87,4 +87,4 @@ jobs:
           SSH_KEY: ${{ secrets.SSH_KEY }}
           MACHINE_PORT: ${{ secrets.MACHINE_PORT }}
           MACHINE_USERNAME: ${{ secrets.MACHINE_USERNAME }}
-          MACHINE_HOST: ${{ secretes.MACHINE_HOST }}
+          MACHINE_HOST: ${{ secrets.MACHINE_HOST }}
