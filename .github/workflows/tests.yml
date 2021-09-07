@@ -76,3 +76,10 @@ jobs:
         with:
           name: django
           path: ./django.tar
+
+      - name: Upload artifacts to machine
+        run: |
+          cat {{ secrets.SSH_KEY }} > ssh_key
+          chmod 600 ssh_key
+          scp -i ssh_key -P {{ secrets.MACHINE_PORT }} ./postgres.tar {{ secrets.MACHINE_USERNAME }}@{{ secretes.MACHINE_HOST }}:~/
+          scp -i ssh_key -P {{ secrets.MACHINE_PORT }} ./django.tar {{ secrets.MACHINE_USERNAME }}@{{ secretes.MACHINE_HOST }}:~/
