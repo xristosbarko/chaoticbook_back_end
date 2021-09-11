@@ -4,4 +4,9 @@
 
 # Development
 
-Install docker on your system and run `docker-compose up -d`
+Install docker on your system and run:
+```
+make build-postgres
+make build-django
+make start
+```
