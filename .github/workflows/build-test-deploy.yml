@@ -14,12 +14,12 @@ jobs:
 
       - name: Build postgres
         run: |
-          make build-postgres
+          make build-postgres-pi
           docker save -o postgres.tar postgres
 
       - name: Build django
         run: |
-          make build-django
+          make build-django-pi
           docker save -o django.tar django
 
       - name: Upload postgres
