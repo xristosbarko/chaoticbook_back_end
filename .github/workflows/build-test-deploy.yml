@@ -12,21 +12,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Build postgres
-        run: |
-          make build-postgres-pi
-          docker save -o postgres.tar postgres
-
-      - name: Build django
-        run: |
-          make build-django-pi
-          docker save -o django.tar django
-
-      - name: Upload postgres
-        uses: actions/upload-artifact@v2
+      - uses: pguyot/arm-runner-action@v2
         with:
-          name: postgres
-          path: ./postgres.tar
+          commands: |
+            make build-django
+            docker save -o django.tar django
 
       - name: Upload django
         uses: actions/upload-artifact@v2
@@ -40,37 +30,23 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Download postgres
-        uses: actions/download-artifact@v2
-        with:
-          name: postgres
-
       - name: Download django
         uses: actions/download-artifact@v2
         with:
           name: django
-
-      - name: Load images
-        run: |
-          docker load -i postgres.tar
-          docker load -i django.tar
-
-      - name: Check formating
-        run: make check
-
-      - name: Run Tests
-        run: make unit-tests
+      
+      - uses: pguyot/arm-runner-action@v2
+        with:
+         commands: |
+            docker load -i django.tar
+            make check
+            make unit-tests
 
   deploy:
     runs-on: ubuntu-latest
     needs: tests
     steps:
       - uses: actions/checkout@v2
-
-      - name: Download postgres
-        uses: actions/download-artifact@v2
-        with:
-          name: postgres
 
       - name: Download django
         uses: actions/download-artifact@v2
@@ -85,7 +61,6 @@ jobs:
           ssh-keyscan -H -p $MACHINE_PORT $IP 2> /dev/null > known_hosts
           echo "$SSH_KEY" > ssh_key
           sudo chmod 600 ssh_key
-          scp -i ssh_key -P $MACHINE_PORT -o UserKnownHostsFile=known_hosts ./postgres.tar $MACHINE_USERNAME@$IP:~/
           scp -i ssh_key -P $MACHINE_PORT -o UserKnownHostsFile=known_hosts ./django.tar $MACHINE_USERNAME@$IP:~/
           scp -i ssh_key -P $MACHINE_PORT -o UserKnownHostsFile=known_hosts ./docker-compose.yml $MACHINE_USERNAME@$IP:~/
           scp -i ssh_key -P $MACHINE_PORT -o UserKnownHostsFile=known_hosts ./Makefile $MACHINE_USERNAME@$IP:~/

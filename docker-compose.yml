@@ -5,7 +5,7 @@ volumes:
 
 services:
   postgres:
-    image: postgres
+    image: arm64v8/postgres
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
@@ -22,7 +22,7 @@ services:
   django:
     image: django
     volumes:
-      - .:/chaoticbook
+      - .:/app
     ports:
       - "8000:8000"
     command:
